@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.CompanyAddressMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.CompanyAddressEntity" id="companyAddressMap">
+        <result property="id" column="id"/>
+        <result property="address" column="address"/>
+        <result property="net" column="net"/>
+        <result property="isEnable" column="is_enable"/>
+        <result property="remarkName" column="remark_name"/>
+        <result property="symbol" column="symbol"/>
+        <result property="fullName" column="full_name"/>
+        <result property="balance" column="balance"/>
+    </resultMap>
+    <!-- 获取全部公司地址信息列表-->
+    <select id="getAllCompanyAddress"  resultMap="companyAddressMap">
+        SELECT
+            *
+        FROM
+            company_address
+    </select>
+
+    <!-- 获取公司地址信息列表-->
+    <select id="getCompanyAddressList"  resultMap="companyAddressMap">
+        SELECT
+           *
+        FROM
+          company_address
+        where
+        1=1
+        LIMIT #{page}, #{pageSize}
+    </select>
+
+    <select id="getCompanyAddressCount" resultType="java.lang.Integer">
+        SELECT
+            COUNT(*)
+        FROM
+            company_address
+    </select>
+
+</mapper>

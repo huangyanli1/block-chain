@@ -1,0 +1,44 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/dev?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8
+    username: root
+    password: 123456
+  #    hikari:
+  #      read-only: false #连接只读数据库时配置为true,保证安全
+  #      #此属性控制客户端等待来自池的连接的最大毫秒数。超过此时间，则会抛出SQLException。最低可接受的连接超时时间为250 ms。 默认值：30000(30秒)
+  #      connection-timeout: 60000
+  #      idle-timeout: 60000   #池允许达到的最大大小，包括空闲和正在使用的连接  默认值：10
+  #      validation-timeout: 3000 #连接将被测试活动的最大时间量
+  #      max-lifetime: 60000  #一个连接的生命时长（毫秒），超时而且没被使用则被释放（retired），缺省:30分钟，建议设置比数据库超时时长少30秒
+  #      maximum-pool-size: 60  #池中最大连接数，包括闲置和使用中的连接
+  #      minimum-idle: 10 #最小空闲连接数
+
+
+  redis:
+    database: 0
+    host: 8.142.35.7
+    port: 6379
+    password: 123456
+    timeout: 30000  # 连接超时时长（毫秒）
+    lettuce:
+      pool:
+        max-active: 1000  # 连接池最大连接数（使用负值表示没有限制）
+        max-wait: 30000   # -1ms  连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-idle: 100      # 连接池中的最大空闲连接
+        min-idle: 50       # 连接池中的最小空闲连接
+
+  application:
+    name: block-chain
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+    sentinel:
+      transport:
+        dashboard: 127.0.0.1:8333
+        port: 8719
+      eager: true
+WX: # 微信配置
+  # 二维码拼接地址前缀
+  CompetitionQrCodeUrl : "https://share.leyoukge.com:88/activity/pages/playMusic?Link="

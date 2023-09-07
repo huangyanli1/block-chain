@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.CurrencyChainInfoMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.CurrencyChainInfoEntity" id="currencyChainInfoMap">
+        <result property="id" column="id"/>
+        <result property="net" column="net"/>
+        <result property="netName" column="net_name"/>
+        <result property="logoUrl" column="logo_url"/>
+    </resultMap>
+
+
+    <!-- 获取所有的公链信息-->
+    <select id="getAllChainInfo" resultMap="currencyChainInfoMap">
+        SELECT
+            *
+        FROM
+            currency_chain_info
+    </select>
+
+    <!--获取是否有这个公链 -->
+    <select id="getNetInfoCount" resultType="java.lang.Integer">
+        SELECT  COUNT(*) from  currency_chain_info
+        WHERE
+        1=1
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+    </select>
+
+</mapper>

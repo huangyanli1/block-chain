@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.WalletCurrencyTransactionMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.WalletCurrencyTransactionEntity" id="walletCurrencyTransactionMap">
+        <result property="id" column="id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="businessId" column="business_id"/>
+        <result property="dexOrderId" column="dex_order_id"/>
+        <result property="dexId" column="dex_id"/>
+        <result property="txHash" column="tx_hash"/>
+        <result property="entryAddress" column="entry_address"/>
+        <result property="entryNet" column="entry_net"/>
+        <result property="entrySymbol" column="entry_symbol"/>
+        <result property="entryPrice" column="entry_price"/>
+        <result property="entryAmount" column="entry_amount"/>
+        <result property="outNet" column="out_net"/>
+        <result property="outSymbol" column="out_symbol"/>
+        <result property="outPrice" column="out_price"/>
+        <result property="outAmount" column="out_amount"/>
+        <result property="transactionStatus" column="transaction_status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="businessData" column="business_data"/>
+        <result property="serviceFeeAmount" column="service_fee_amount"/>
+        <result property="gasFee" column="gas_fee"/>
+    </resultMap>
+
+    <!--根据筛选条件获取对应 币币交易信息 -->
+    <select id="getCurrencyTransactionInfo"  parameterType="com.block.chain.vo.management.TransactionParamerVO"  resultMap="walletCurrencyTransactionMap">
+        SELECT
+        *
+        FROM
+        wallet_currency_transaction
+        WHERE
+        1=1
+        <if test="orderId != null and orderId != ''">
+            AND order_id = #{orderId}
+        </if>
+        <if test="idList != null ">
+            AND id IN
+            <foreach item = "orderId" collection="idList" separator="," open="(" close=")">
+                #{orderId}
+            </foreach>
+        </if>
+    </select>
+
+
+    <!--后台管理系统-加密货币交易管理 - 兑换币列表 -->
+    <select id="getCurrencyTransactionList"  parameterType="com.block.chain.vo.management.TransactionParamerVO"  resultMap="walletCurrencyTransactionMap">
+        SELECT
+            *
+        FROM
+            wallet_currency_transaction
+        WHERE
+        1=1
+<!--        <if test="address != null and address != ''">-->
+<!--            AND-->
+<!--            <foreach item = "addr" collection="address" separator="OR" open="(" close=")">-->
+<!--                (entry_address like concat( '%' , #{addr}, '%'))-->
+<!--            </foreach>-->
+<!--        </if>-->
+<!--        <if test="orderId != null and orderId != ''">-->
+<!--            AND order_id = #{orderId}-->
+<!--        </if>-->
+        <if test="orderList != null ">
+            AND order_id IN
+            <foreach item = "orderId" collection="orderList" separator="," open="(" close=")">
+                #{orderId}
+            </foreach>
+        </if>
+        <if test="entrySymbol != null and entrySymbol != ''">
+            AND entry_symbol = #{entrySymbol}
+        </if>
+        <if test="outSymbol != null and outSymbol != ''">
+            AND out_symbol = #{outSymbol}
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND create_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND create_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+        ORDER BY create_time DESC
+        LIMIT #{page}, #{pageSize}
+    </select>
+
+
+    <!--后台管理系统-加密货币交易管理 - 兑换币列表数量 -->
+    <select id="getCurrencyTransactionCount"  parameterType="com.block.chain.vo.management.TransactionParamerVO"   resultType="java.lang.Integer" >
+        SELECT
+               COUNT(*)
+        FROM
+            wallet_currency_transaction
+         WHERE
+        1=1
+<!--        <if test="address != null and address != ''">-->
+<!--            AND-->
+<!--            <foreach item = "addr" collection="address" separator="OR" open="(" close=")">-->
+<!--                (entry_address like concat( '%' , #{addr}, '%'))-->
+<!--            </foreach>-->
+<!--        </if>-->
+<!--        <if test="orderId != null and orderId != ''">-->
+<!--            AND order_id = #{orderId}-->
+<!--        </if>-->
+        <if test="orderList != null ">
+            AND order_id IN
+            <foreach item = "orderId" collection="orderList" separator="," open="(" close=")">
+                #{orderId}
+            </foreach>
+        </if>
+        <if test="entrySymbol != null and entrySymbol != ''">
+            AND entry_symbol = #{entrySymbol}
+        </if>
+        <if test="outSymbol != null and outSymbol != ''">
+            AND out_symbol = #{outSymbol}
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND create_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND create_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+
+    <!--获取所有状态为broadcasting币币兑换交易数据-->
+    <select id="getBroadcastingList"  resultMap="walletCurrencyTransactionMap">
+        SELECT
+        *
+        FROM
+        wallet_currency_transaction
+        WHERE
+        transaction_status = 2
+    </select>
+
+
+
+    <!--根据筛选条件获取对应 币币交易信息 -->
+    <select id="getExchangeList"   resultMap="walletCurrencyTransactionMap">
+        SELECT
+        *
+        FROM
+        wallet_currency_transaction
+        WHERE
+        1=1
+        <if test="net != null and net != ''">
+            AND out_net = #{net}
+        </if>
+        <if test="address != null ">
+            AND entry_address IN
+            <foreach item = "orderId" collection="address" separator="," open="(" close=")">
+                #{orderId}
+            </foreach>
+        </if>
+    </select>
+
+</mapper>

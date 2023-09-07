@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.ExchangeTransactionMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.ExchangeTransactionEntity" id="exchangeTransactionMap">
+        <result property="id" column="id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="exchangeOrderId" column="exchange_order_id"/>
+        <result property="transactionStatus" column="transaction_status"/>
+        <result property="serviceFeeAmount" column="service_fee_amount"/>
+        <result property="fromAmount" column="from_amount"/>
+        <result property="toAmount" column="to_amount"/>
+        <result property="payinGasFee" column="payin_gas_fee"/>
+        <result property="payoutGasFee" column="payout_gas_fee"/>
+        <result property="flow" column="flow"/>
+        <result property="type" column="type"/>
+        <result property="payinAddress" column="payin_address"/>
+        <result property="payoutAddress" column="payout_address"/>
+        <result property="payoutExtraId" column="payout_extra_id"/>
+        <result property="fromCurrency" column="from_currency"/>
+        <result property="toCurrency" column="to_currency"/>
+        <result property="refundAddress" column="refund_address"/>
+        <result property="refundExtraId" column="refund_extra_id"/>
+        <result property="fromNetwork" column="from_network"/>
+        <result property="toNetwork" column="to_network"/>
+        <result property="payinHash" column="payin_hash"/>
+        <result property="payoutHash" column="payout_hash"/>
+        <result property="businessId" column="business_id"/>
+        <result property="callbackUrl" column="callback_url"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <!-- 获取两个小时以内的状态未成功和失败的交易数据-->
+    <select id="getExchangeTransactionList" resultMap="exchangeTransactionMap">
+        SELECT
+            *
+        FROM
+            exchange_transaction
+        WHERE
+          1=1
+          AND transaction_status NOT IN ( 5, 6 )
+        <if test="createTime != null and createTime != ''">
+            AND create_time <![CDATA[ >= ]]> #{createTime}
+        </if>
+    </select>
+
+    <!-- 获取两个小时以外的状态未成功和失败的交易数据-->
+    <select id="getTransactionTwoHour" resultMap="exchangeTransactionMap">
+        SELECT
+          *
+        FROM
+          exchange_transaction
+        WHERE
+          1=1
+        AND transaction_status NOT IN ( 0,5,6 )
+        <if test="createTime != null and createTime != ''">
+            AND create_time <![CDATA[ <= ]]> #{createTime}
+        </if>
+    </select>
+
+
+
+    <!-- 后台管理系统 - 首页统计 - 接收发送统计 - 历史接收币价值排名 - 历史接收币总价值-->
+    <select id="getHistoryExchangeList" resultMap="exchangeTransactionMap">
+        SELECT
+        *
+        FROM
+        exchange_transaction
+        WHERE
+        1=1
+        AND transaction_status = 5
+        <if test="addressList != null ">
+            AND
+            <foreach item = "address" collection="addressList" separator="OR" open="(" close=")">
+                (payout_address like concat( '%' , #{address}, '%'))
+            </foreach>
+        </if>
+    </select>
+
+
+    <!--后台管理系统-加密货币交易管理 - 兑换币列表 -->
+    <select id="getTransactionList"  parameterType="com.block.chain.vo.management.TransactionParamerVO"  resultMap="exchangeTransactionMap">
+        SELECT
+        *
+        FROM
+        exchange_transaction
+        WHERE
+        1=1
+        <if test="address != null and address != ''">
+        AND
+            <foreach item = "addr" collection="address" separator="OR" open="(" close=")">
+                (payout_address like concat( '%' , #{addr}, '%'))
+            </foreach>
+        </if>
+        <if test="orderList != null ">
+            AND order_id IN
+            <foreach item = "orderId" collection="orderList" separator="," open="(" close=")">
+                #{orderId}
+            </foreach>
+        </if>
+        <if test="entrySymbol != null and entrySymbol != ''">
+            AND to_currency = #{entrySymbol}
+        </if>
+        <if test="outSymbol != null and outSymbol != ''">
+            AND from_currency = #{outSymbol}
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND create_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND create_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+        ORDER BY create_time DESC
+        LIMIT #{page}, #{pageSize}
+    </select>
+
+
+    <!-- exchange now历史兑换交易列表-->
+    <select id="getHistoryExchangeTransactionList"   parameterType="com.block.chain.vo.management.TransactionParamerVO"  resultMap="exchangeTransactionMap">
+        SELECT
+           *
+        FROM
+           exchange_transaction
+        WHERE
+        1=1
+        <if test="address != null and address != ''">
+            AND
+            <foreach item = "addr" collection="address" separator="OR" open="(" close=")">
+                (payin_address like concat( '%' , #{addr}, '%'))
+            </foreach>
+        </if>
+        <if test="address != null and address != ''">
+            OR
+            <foreach item = "addr" collection="address" separator="OR" open="(" close=")">
+                (payout_address like concat( '%' , #{addr}, '%'))
+            </foreach>
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND create_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND create_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+        AND transaction_status NOT IN (0)
+        ORDER BY create_time DESC
+        LIMIT #{page}, #{pageSize}
+    </select>
+
+    <!-- exchange now历史兑换交易列表数量-->
+    <select id="getHistoryExchangeTransactionCount"   parameterType="com.block.chain.vo.management.TransactionParamerVO"   resultType="java.lang.Integer" >
+        SELECT
+        COUNT(*)
+        FROM
+        exchange_transaction
+        WHERE
+        1=1
+        <if test="address != null and address != ''">
+            AND
+            <foreach item = "addr" collection="address" separator="OR" open="(" close=")">
+                (payin_address like concat( '%' , #{addr}, '%'))
+            </foreach>
+        </if>
+        <if test="address != null and address != ''">
+            OR
+            <foreach item = "addr" collection="address" separator="OR" open="(" close=")">
+                (payout_address like concat( '%' , #{addr}, '%'))
+            </foreach>
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND create_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND create_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+        AND transaction_status NOT IN (0)
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- exchange now历史兑换交易详情-->
+    <select id="getExchangeTransactionByOrderId"   resultMap="exchangeTransactionMap">
+        SELECT
+           *
+        FROM
+          exchange_transaction
+        WHERE
+        1=1
+        <if test="orderId != null and orderId != ''">
+            AND exchange_order_id = #{orderId}
+        </if>
+    </select>
+
+    <!--exchange now订单状态修改-->
+    <update id="updateTransactionByOrderId" parameterType="com.block.chain.entity.ExchangeTransactionEntity" >
+        UPDATE exchange_transaction
+        SET
+            transaction_status = 1
+        WHERE exchange_order_id = #{exchangeOrderId}
+    </update>
+
+
+
+</mapper>

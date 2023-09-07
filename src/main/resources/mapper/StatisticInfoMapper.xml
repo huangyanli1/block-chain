@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.StatisticInfoMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.StatisticInfoEntity" id="statisticInfoMap">
+        <result property="id" column="id"/>
+        <result property="currencyInfo" column="currency_info"/>
+        <result property="addressInfo" column="address_info"/>
+        <result property="currencyValue" column="currency_value"/>
+        <result property="transactionException" column="transaction_exception"/>
+        <result property="entriesNumber" column="entries_number"/>
+        <result property="entriesInfo" column="entries_info"/>
+        <result property="withdrawalNumber" column="withdrawal_number"/>
+        <result property="withdrawalInfo" column="withdrawal_info"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <!--根据起止时间查询统计数据-->
+    <select id="getStatisticInfoList" resultMap="statisticInfoMap">
+        SELECT
+        *
+        FROM
+        statistic_info t
+        WHERE
+        1=1
+        <if test="startTime != null and startTime != ''">
+            AND create_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND create_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+    </select>
+
+
+</mapper>

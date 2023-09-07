@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.TransactionBtcInfoMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.TransactionBtcInfoEntity" id="transactionBtcInfoMap">
+        <result property="id" column="id"/>
+        <result property="blockHeight" column="block_height"/>
+        <result property="blockTime" column="block_time"/>
+        <result property="txHash" column="tx_hash"/>
+        <result property="diff" column="diff"/>
+        <result property="transactionFee" column="transaction_fee"/>
+        <result property="contractAddress" column="contract_address"/>
+        <result property="coinType" column="coin_type"/>
+        <result property="fromAddr" column="from_addr"/>
+        <result property="toAddr" column="to_addr"/>
+        <result property="transactionStatus" column="transaction_status"/>
+        <result property="confirmTime" column="confirm_time"/>
+        <result property="contractInput" column="contract_input"/>
+        <result property="contractOutput" column="contract_output"/>
+        <result property="gasLimit" column="gas_limit"/>
+        <result property="gasPrice" column="gas_price"/>
+        <result property="blockHash" column="block_hash"/>
+        <result property="utxoInputs" column="utxo_inputs"/>
+        <result property="utxoOutputs" column="utxo_outputs"/>
+        <result property="ownerAddress" column="owner_address"/>
+        <result property="coinPrice" column="coin_price"/>
+        <result property="coinValue" column="coin_value"/>
+        <result property="net" column="net"/>
+        <result property="symbol" column="symbol"/>
+    </resultMap>
+    <!--公链交易记录录入-->
+    <insert id="saveTransactionInfo" parameterType="com.block.chain.vo.TransactionBtcInfoVO" useGeneratedKeys="true" keyProperty="id">
+        insert into ${tableName}(
+            block_height,
+            block_time,
+            tx_hash,
+            diff,
+            transaction_fee,
+            contract_address,
+            coin_type,
+            from_addr,
+            to_addr,
+            transaction_status,
+            confirm_time,
+            contract_input,
+            contract_output,
+            gas_limit,
+            gas_price,
+            block_hash,
+            utxo_inputs,
+            utxo_outputs,
+            owner_address,
+            coin_price,
+            coin_value,
+            net,
+            symbol
+        )values(
+                   #{blockHeight},
+                   #{blockTime},
+                   #{txHash},
+                   #{diff},
+                   #{transactionFee},
+                   #{contractAddress},
+                   #{coinType},
+                   #{fromAddr},
+                   #{toAddr},
+                   #{transactionStatus},
+                   #{confirmTime},
+                   #{contractInput},
+                   #{contractOutput},
+                   #{gasLimit},
+                   #{gasPrice},
+                   #{blockHash},
+                   #{utxoInputs},
+                   #{utxoOutputs},
+                   #{ownerAddress},
+                   #{coinPrice},
+                   #{coinValue},
+                   #{net},
+                   #{symbol}
+                       )
+    </insert>
+
+    <update id="updateTransactionInfo" parameterType="com.block.chain.vo.TransactionBtcInfoVO" >
+        UPDATE ${tableName}
+        SET
+            block_height = #{blockHeight},
+            block_time = #{blockTime},
+            tx_hash = #{txHash},
+            diff = #{diff},
+            transaction_fee = #{transactionFee},
+            contract_address = #{contractAddress},
+            coin_type = #{coinType},
+            from_addr = #{fromAddr},
+            to_addr = #{toAddr},
+            transaction_status = #{transactionStatus},
+            confirm_time =  #{confirmTime},
+            contract_input =  #{contractInput},
+            contract_output = #{contractOutput},
+            gas_limit = #{gasLimit},
+            gas_price = #{gasPrice},
+            block_hash = #{blockHash},
+            utxo_inputs = #{utxoInputs},
+            utxo_outputs =  #{utxoOutputs},
+            owner_address = #{ownerAddress},
+            coin_price = #{coinPrice},
+            coin_value = #{coinValue},
+            net =  #{net},
+            symbol =  #{symbol}
+        WHERE id = #{id}
+    </update>
+
+
+    <!--根据txHash和net动态修改交易记录-->
+    <update id="updateTransactionInfoByTxHash" parameterType="com.block.chain.vo.TransactionBtcInfoVO" >
+        UPDATE ${tableName}
+        SET
+            block_height = #{blockHeight},
+            block_time = #{blockTime},
+            tx_hash = #{txHash},
+            diff = #{diff},
+            transaction_fee = #{transactionFee},
+            contract_address = #{contractAddress},
+            coin_type = #{coinType},
+            from_addr = #{fromAddr},
+            to_addr = #{toAddr},
+            transaction_status = #{transactionStatus},
+            confirm_time =  #{confirmTime},
+            contract_input =  #{contractInput},
+            contract_output = #{contractOutput},
+            gas_limit = #{gasLimit},
+            gas_price = #{gasPrice},
+            block_hash = #{blockHash},
+            utxo_inputs = #{utxoInputs},
+            utxo_outputs =  #{utxoOutputs},
+            owner_address = #{ownerAddress},
+            coin_price = #{coinPrice},
+            coin_value = #{coinValue},
+            net =  #{net},
+            symbol =  #{symbol}
+        WHERE tx_hash = #{txHash}
+        AND net =  #{net}
+    </update>
+
+
+    <!--动态获取所有pending状态的交易记录-->
+    <select id="getPendingTransactionList" parameterType="com.block.chain.vo.TransactionBtcInfoVO" resultType="com.block.chain.vo.TransactionBtcInfoVO">
+        SELECT
+            *
+        FROM
+            ${tableName}
+        WHERE
+            transaction_status IN ('1','2','3')
+    </select>
+
+
+    <!--获取地址下交易记录公用方法 - 交易记录入库优化后 根据地址和公链到对应公链记录表中查询-->
+    <select id="geNetAddressTransaction" parameterType="com.block.chain.vo.AddressParameterVO" resultType="com.block.chain.vo.TransactionBtcInfoVO">
+        SELECT
+           *
+        FROM
+           ${tableName}
+        WHERE
+        1=1
+        <if test="address != null ">
+            AND (from_addr like concat( '%' , #{address}, '%')
+            OR to_addr like concat( '%' , #{address}, '%')
+            )
+        </if>
+        <if test="symbol != null and symbol != ''">
+            AND symbol = #{symbol}
+        </if>
+    </select>
+
+    <!--获取地址下交易记录公用方法 - 交易记录入库优化后 根据地址和公链到对应公链记录表中查询-->
+    <select id="getListByHash" parameterType="com.block.chain.vo.AddressParameterVO" resultType="com.block.chain.vo.TransactionBtcInfoVO">
+        SELECT
+        *
+        FROM
+        ${tableName}
+        WHERE
+        1=1
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+        <if test="txHash != null and txHash != ''">
+            AND tx_hash = #{txHash}
+        </if>
+    </select>
+
+    <!--后台管理系统 - 财务管理 - 公司钱包管理统计数据获取 -入账 -->
+    <select id="getEntriesStatisticsTransaction" resultType="java.lang.Integer">
+        SELECT
+           COUNT(*)
+        FROM
+           ${tableName}
+        WHERE
+        1=1
+        AND diff >= 0
+        <if test="address != null ">
+            AND (from_addr like concat( '%' , #{address}, '%')
+            OR to_addr like concat( '%' , #{address}, '%')
+            )
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND block_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND block_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+    </select>
+
+    <!--后台管理系统 - 财务管理 - 公司钱包管理统计数据获取 -入账 -->
+    <select id="getEntriesStatisticsTransactionList" resultType="com.block.chain.vo.TransactionBtcInfoVO">
+        SELECT
+           diff
+        FROM
+           ${tableName}
+        WHERE
+        1=1
+        AND diff >= 0
+        <if test="address != null ">
+            AND (from_addr like concat( '%' , #{address}, '%')
+            OR to_addr like concat( '%' , #{address}, '%')
+            )
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND block_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND block_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+    </select>
+
+    <!--后台管理系统 - 财务管理 - 公司钱包管理统计数据获取 -出账 -->
+    <select id="getWithdrawalStatisticsTransaction"  resultType="java.lang.Integer">
+        SELECT
+           COUNT(*)
+        FROM
+           ${tableName}
+        WHERE
+        1=1
+        AND diff <![CDATA[ <= ]]> 0
+        <if test="address != null ">
+            AND (from_addr like concat( '%' , #{address}, '%')
+            OR to_addr like concat( '%' , #{address}, '%')
+            )
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND block_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND block_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+    </select>
+
+    <!--后台管理系统 - 财务管理 - 公司钱包管理统计数据获取 -出账 -->
+    <select id="getWithdrawalStatisticsTransactionList"  resultType="com.block.chain.vo.TransactionBtcInfoVO">
+        SELECT
+           diff
+        FROM
+           ${tableName}
+        WHERE
+        1=1
+        AND diff <![CDATA[ <= ]]> 0
+        <if test="address != null ">
+            AND (from_addr like concat( '%' , #{address}, '%')
+            OR to_addr like concat( '%' , #{address}, '%')
+            )
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND block_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND block_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+    </select>
+
+    <!--后台管理系统 - 首页统计 - 接收统计 -->
+    <select id="getCurrencyReceiveStatistics" resultType="com.block.chain.vo.TransactionBtcInfoVO">
+        SELECT
+             diff,net,symbol
+        FROM
+             ${tableName}
+        WHERE
+        1=1
+        AND diff >= 0
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+        <if test="symbol != null and symbol != ''">
+            AND symbol = #{symbol}
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND block_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND block_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+        <if test="address != null and address != ''">
+            AND (from_addr like concat( '%' , #{address}, '%')
+            OR to_addr like concat( '%' , #{address}, '%')
+            )
+        </if>
+    </select>
+
+    <!--后台管理系统 - 首页统计 - 发送统计 -->
+    <select id="getCurrencySendingStatistics" resultType="com.block.chain.vo.TransactionBtcInfoVO">
+        SELECT
+           diff,net
+        FROM
+           ${tableName}
+        WHERE
+        1=1
+        AND diff <![CDATA[ < ]]>0
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+        <if test="symbol != null and symbol != ''">
+            AND symbol = #{symbol}
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND block_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND block_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+    </select>
+
+
+    <!--后台管理系统-加密货币交易管理 - 接收币列表 -->
+    <select id="getReceiveList" resultType="com.block.chain.vo.TransactionBtcInfoVO">
+        SELECT * from (
+        (SELECT * FROM transaction_bsc_info WHERE diff > 0) UNION ALL
+        (SELECT * FROM transaction_btc_info WHERE diff > 0) UNION ALL
+        (SELECT * FROM transaction_eth_info WHERE diff > 0) UNION ALL
+        (SELECT * FROM transaction_heco_info WHERE diff > 0) UNION ALL
+        (SELECT * FROM transaction_matic_info WHERE diff > 0) UNION ALL
+        (SELECT * FROM transaction_trx_info WHERE diff > 0)) trion
+        WHERE
+        1=1
+        <if test="addressList != null ">
+            AND
+            <foreach item = "address" collection="addressList" separator="OR" open="(" close=")">
+                (to_addr like concat( '%' , #{address}, '%'))
+            </foreach>
+        </if>
+        <!--        <if test="address != null and address != '' ">-->
+<!--            AND (from_addr like concat( '%' , #{address}, '%')-->
+<!--            OR to_addr like concat( '%' , #{address}, '%')-->
+<!--            )-->
+<!--        </if>-->
+        <if test="txHash != null and txHash != ''">
+            AND tx_hash = #{txHash}
+        </if>
+        <if test="confim != null and confim != ''">
+          <if test="confim == 1">
+            AND transaction_status = 4
+          </if>
+          <if test="confim == 0">
+              AND transaction_status != 4
+          </if>
+        </if>
+<!--        <if test="confim != null and confim != ''">-->
+<!--            AND transaction_status = 4-->
+<!--        </if>-->
+<!--        <if test="notConfim != null and notConfim != ''">-->
+<!--            AND transaction_status != 4-->
+<!--        </if>-->
+        <if test="startTime != null and startTime != ''">
+            AND block_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND block_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+        ORDER BY block_time DESC
+        LIMIT #{page}, #{pageSize}
+    </select>
+
+
+    <!--后台管理系统-加密货币交易管理 - 接收币列表数量 -->
+    <select id="getReceiveCount"  resultType="java.lang.Integer">
+        SELECT COUNT(*) from (
+        (SELECT * FROM transaction_bsc_info WHERE diff > 0) UNION ALL
+        (SELECT * FROM transaction_btc_info WHERE diff > 0) UNION ALL
+        (SELECT * FROM transaction_eth_info WHERE diff > 0) UNION ALL
+        (SELECT * FROM transaction_heco_info WHERE diff > 0) UNION ALL
+        (SELECT * FROM transaction_matic_info WHERE diff > 0) UNION ALL
+        (SELECT * FROM transaction_trx_info WHERE diff > 0)) trion
+        WHERE
+        1=1
+        <if test="addressList != null and addressList != ''">
+            AND
+            <foreach item = "address" collection="addressList" separator="OR" open="(" close=")">
+                (to_addr like concat( '%' , #{address}, '%'))
+            </foreach>
+        </if>
+        <if test="txHash != null and txHash != ''">
+            AND tx_hash = #{txHash}
+        </if>
+        <if test="confim != null and confim != ''">
+            <if test="confim == 1">
+                AND transaction_status = 4
+            </if>
+            <if test="confim == 0">
+                AND transaction_status != 4
+            </if>
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND block_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND block_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+        ORDER BY block_time DESC
+    </select>
+
+
+    <!--后台管理系统-加密货币交易管理 - 发送币列表 -->
+    <select id="getSendingList" resultType="com.block.chain.vo.TransactionBtcInfoVO">
+        SELECT * from (
+        (SELECT * FROM transaction_bsc_info WHERE diff  <![CDATA[ < ]]> 0) UNION ALL
+        (SELECT * FROM transaction_btc_info WHERE diff  <![CDATA[ < ]]> 0) UNION ALL
+        (SELECT * FROM transaction_eth_info WHERE diff  <![CDATA[ < ]]> 0) UNION ALL
+        (SELECT * FROM transaction_heco_info WHERE diff  <![CDATA[ < ]]> 0) UNION ALL
+        (SELECT * FROM transaction_matic_info WHERE diff  <![CDATA[ < ]]> 0) UNION ALL
+        (SELECT * FROM transaction_trx_info WHERE diff  <![CDATA[ < ]]> 0)) trion
+        WHERE
+        1=1
+        <if test="addressList != null and addressList != ''">
+            AND
+            <foreach item = "address" collection="addressList" separator="OR" open="(" close=")">
+                (from_addr like concat( '%' , #{address}, '%'))
+            </foreach>
+        </if>
+        <if test="symbol != null and symbol != ''">
+            AND symbol = #{symbol}
+        </if>
+        <if test="minDiff != null and minDiff != ''">
+            AND ABS(diff) <![CDATA[ >= ]]> #{minDiff}
+        </if>
+        <if test="maxDiff != null and maxDiff != ''">
+            AND ABS(diff) <![CDATA[ <= ]]> #{maxDiff}
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND block_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND block_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+        ORDER BY block_time DESC
+        LIMIT #{page}, #{pageSize}
+    </select>
+
+
+    <!--后台管理系统-加密货币交易管理 - 发送币列表数量 -->
+    <select id="getSendingCount"  resultType="java.lang.Integer">
+        SELECT COUNT(*) from (
+        (SELECT * FROM transaction_bsc_info WHERE diff  <![CDATA[ < ]]> 0) UNION ALL
+        (SELECT * FROM transaction_btc_info WHERE diff  <![CDATA[ < ]]> 0) UNION ALL
+        (SELECT * FROM transaction_eth_info WHERE diff  <![CDATA[ < ]]> 0) UNION ALL
+        (SELECT * FROM transaction_heco_info WHERE diff  <![CDATA[ < ]]> 0) UNION ALL
+        (SELECT * FROM transaction_matic_info WHERE diff  <![CDATA[ < ]]> 0) UNION ALL
+        (SELECT * FROM transaction_trx_info WHERE diff  <![CDATA[ < ]]> 0)) trion
+        WHERE
+        1=1
+        <if test="addressList != null ">
+            AND
+            <foreach item = "address" collection="addressList" separator="OR" open="(" close=")">
+                (from_addr like concat( '%' , #{address}, '%'))
+            </foreach>
+        </if>
+        <if test="symbol != null and symbol != ''">
+            AND symbol = #{symbol}
+        </if>
+        <if test="minDiff != null and minDiff != ''">
+            AND ABS(diff) <![CDATA[ >= ]]> #{minDiff}
+        </if>
+        <if test="maxDiff != null and maxDiff != ''">
+            AND ABS(diff) <![CDATA[ <= ]]> #{maxDiff}
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND block_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND block_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+        ORDER BY block_time DESC
+    </select>
+
+
+
+    <!--后台管理系统 - 会员管理 - 会员基础信息 - 加密数字资产管理 - 按net，address，symbol统计入账信息 -->
+    <select id="getReceiveGroupBySymbol" resultType="com.block.chain.vo.management.MemberSymbolVO">
+        SELECT
+           symbol,
+           COUNT(*) AS number
+        FROM
+        ${tableName}
+        WHERE
+        1=1
+        AND diff >= 0
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+        <if test="address != null and address != ''">
+            AND (from_addr like concat( '%' , #{address}, '%')
+            OR to_addr like concat( '%' , #{address}, '%')
+            )
+        </if>
+        GROUP BY symbol
+    </select>
+
+    <!--后台管理系统 - 会员管理 - 会员基础信息 - 加密数字资产管理 - 按net，address，symbol统计出账信息-->
+    <select id="getSendingGroupBySymbol" resultType="com.block.chain.vo.management.MemberSymbolVO">
+        SELECT
+           symbol,
+           COUNT(*) AS number
+        FROM
+        ${tableName}
+        WHERE
+        1=1
+        AND diff <![CDATA[ < ]]>0
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+        <if test="address != null and address != ''">
+            AND (from_addr like concat( '%' , #{address}, '%')
+            OR to_addr like concat( '%' , #{address}, '%')
+            )
+        </if>
+        GROUP BY symbol
+    </select>
+
+    <!--后台管理系统 - 会员管理 - 会员基础信息 - 加密数字资产管理 - 按net，address，symbol统计入账信息 -->
+    <select id="getReceiveGroupBySymbols" resultType="com.block.chain.vo.management.MemberSymbolVO">
+        SELECT
+        symbol,
+        SUM(diff) AS diff
+        FROM
+        ${tableName}
+        WHERE
+        1=1
+        AND diff >= 0
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+        <if test="address != null and address != ''">
+            AND (from_addr like concat( '%' , #{address}, '%')
+            OR to_addr like concat( '%' , #{address}, '%')
+            )
+        </if>
+        GROUP BY symbol
+    </select>
+
+    <!--后台管理系统 - 会员管理 - 会员基础信息 - 加密数字资产管理 - 按net，address，symbol统计出账信息-->
+    <select id="getSendingGroupBySymbols" resultType="com.block.chain.vo.management.MemberSymbolVO">
+        SELECT
+        symbol,
+        SUM(diff) AS diff
+        FROM
+        ${tableName}
+        WHERE
+        1=1
+        AND diff <![CDATA[ < ]]>0
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+        <if test="address != null and address != ''">
+            AND (from_addr like concat( '%' , #{address}, '%')
+            OR to_addr like concat( '%' , #{address}, '%')
+            )
+        </if>
+        GROUP BY symbol
+    </select>
+
+
+    <!--后台管理系统 - 首页统计 - 接收发送统计 - 历史接收币价值排名 - 历史发送币总价值获取-->
+    <select id="getHistorySendingList" resultType="com.block.chain.vo.TransactionBtcInfoVO">
+        SELECT * from (
+        (SELECT * FROM transaction_bsc_info ) UNION ALL
+        (SELECT * FROM transaction_btc_info) UNION ALL
+        (SELECT * FROM transaction_eth_info ) UNION ALL
+        (SELECT * FROM transaction_heco_info) UNION ALL
+        (SELECT * FROM transaction_matic_info ) UNION ALL
+        (SELECT * FROM transaction_trx_info )) trion
+        WHERE
+        1=1
+        <if test="addressList != null and addressList != ''">
+            AND
+            <foreach item = "address" collection="addressList" separator="OR" open="(" close=")">
+                (from_addr like concat( '%' , #{address}, '%'))
+            </foreach>
+        </if>
+    </select>
+
+
+    <!--后台管理系统 - 首页统计 - 接收发送统计 - 历史接收币价值排名 - 历史接收币总价值获取- -->
+    <select id="getHistoryReceiveList" resultType="com.block.chain.vo.TransactionBtcInfoVO">
+        SELECT * from (
+        (SELECT * FROM transaction_bsc_info) UNION ALL
+        (SELECT * FROM transaction_btc_info) UNION ALL
+        (SELECT * FROM transaction_eth_info) UNION ALL
+        (SELECT * FROM transaction_heco_info ) UNION ALL
+        (SELECT * FROM transaction_matic_info) UNION ALL
+        (SELECT * FROM transaction_trx_info)) trion
+        WHERE
+        1=1
+        <if test="addressList != null ">
+            AND
+            <foreach item = "address" collection="addressList" separator="OR" open="(" close=")">
+                (to_addr like concat( '%' , #{address}, '%'))
+            </foreach>
+        </if>
+    </select>
+
+    <!--获取对应交易记录表下所有的交易记录，用来补全缺失的交易参数信息，如coinPrice,coinValue-->
+    <select id="getTransactionByName" resultMap="transactionBtcInfoMap">
+        SELECT
+          *
+        FROM
+        ${tableName}
+    </select>
+
+
+    <!--Mybatis大批量修改coinPrice,coinValue-->
+    <update id="updateData" useGeneratedKeys="true" keyProperty="data.id" keyColumn="id" >
+        UPDATE ${tableName}
+        SET
+            coin_price = #{data.coinPrice},
+            coin_value = #{data.coinValue}
+        WHERE id = #{data.id}
+    </update>
+
+
+
+</mapper>

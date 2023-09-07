@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.CurrencyTypeMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.CurrencyTypeEntity" id="currencyTypeMap">
+        <result property="id" column="id"/>
+        <result property="symbol" column="symbol"/>
+        <result property="fullName" column="full_name"/>
+        <result property="logoUrl" column="logo_url"/>
+        <result property="volumeUsd" column="volume_usd"/>
+        <result property="currencyStatus" column="currency_status"/>
+        <result property="marketCapusd" column="market_capUsd"/>
+        <result property="availableSupply" column="available_supply"/>
+        <result property="totalSupply" column="total_supply"/>
+        <result property="maxSupply" column="max_supply"/>
+        <result property="websiteUrl" column="website_url"/>
+        <result property="explorerUrls" column="explorer_urls"/>
+        <result property="whitePaperUrls" column="white_paper_urls"/>
+        <result property="githubId" column="github_id"/>
+        <result property="twitterId" column="twitter_id"/>
+        <result property="facebookId" column="facebook_id"/>
+        <result property="telegramId" column="telegram_id"/>
+        <result property="algoritHm" column="algorit_hm"/>
+        <result property="proof" column="proof"/>
+        <result property="platforms" column="platforms"/>
+        <result property="issueDate" column="issue_date"/>
+        <result property="contractAddress" column="contract_address"/>
+        <result property="ignores" column="ignores"/>
+        <result property="fiat" column="fiat"/>
+        <result property="details" column="details"/>
+        <result property="coinType" column="coin_type"/>
+        <result property="abi" column="abi"/>
+        <result property="isDelete" column="is_delete"/>
+        <result property="net" column="net"/>
+        <result property="netName" column="net_name"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="decimalNumber" column="decimal_number"/>
+        <result property="isExchange" column="is_exchange"/>
+        <result property="isBuy" column="is_buy"/>
+        <result property="appShowSymbol" column="app_show_symbol"/>
+    </resultMap>
+
+    <!-- 获取所有币种信息-->
+    <select id="getCurrencyList" resultMap="currencyTypeMap">
+        SELECT
+               *
+        FROM
+             currency_type
+    </select>
+
+
+    <!-- 按条件筛选币种信息-->
+    <select id="getCurrencyListByParamer" resultMap="currencyTypeMap">
+        SELECT
+            *
+        FROM
+            currency_type
+        WHERE
+        1=1
+        AND is_delete = 0
+        <if test="id != null and id != ''">
+            AND id = #{id}
+        </if>
+        <if test="isExchange != null">
+            AND is_exchange = #{isExchange}
+        </if>
+        <if test="currencyStatus != null and currencyStatus != ''">
+            AND currency_status = #{currencyStatus}
+        </if>
+        <if test="symbol != null and symbol != ''">
+            AND symbol = #{symbol}
+        </if>
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+        <if test="coinType != null and coinType != ''">
+            AND coin_type = #{coinType}
+        </if>
+        <if test="isBuy != null">
+            AND is_buy = #{isBuy}
+        </if>
+        ORDER BY create_date DESC
+        LIMIT #{page}, #{pageSize}
+    </select>
+
+    <!-- 按条件筛选币种信息对应数量-->
+    <select id="getCurrencyListByParamerCount" resultType="java.lang.Integer">
+        SELECT
+           COUNT(*)
+        FROM
+            currency_type
+        WHERE
+        1 = 1
+        AND is_delete = 0
+        <if test="id != null and id != ''">
+            AND id = #{id}
+        </if>
+        <if test="isExchange != null">
+            AND is_exchange = #{isExchange}
+        </if>
+        <if test="currencyStatus != null and currencyStatus != ''">
+            AND currency_status = #{currencyStatus}
+        </if>
+        <if test="symbol != null and symbol != ''">
+            AND symbol = #{symbol}
+        </if>
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+        <if test="coinType != null and coinType != ''">
+            AND coin_type = #{coinType}
+        </if>
+        <if test="isBuy != null">
+            AND is_buy = #{isBuy}
+        </if>
+    </select>
+
+
+    <!-- 获取公链为ETH和MATIC下可兑换币种-->
+    <select id="getExchangeList" resultMap="currencyTypeMap">
+        SELECT
+            *
+        FROM
+            currency_type
+        WHERE
+            net IN ( 'MATIC', 'ETH' )
+        AND is_exchange = 1
+    </select>
+
+    <!-- 获取公链为ETH和MATIC下可兑换币种-->
+    <select id="getAllExchangeList" resultMap="currencyTypeMap">
+        SELECT
+            *
+        FROM
+            currency_type
+        WHERE
+          is_delete = 0
+          AND is_exchange = 1
+    </select>
+
+    <!-- 获取exchange now 跨链桥可用可兑换币种-->
+    <select id="getAvailableCurrencies" resultMap="currencyTypeMap">
+        SELECT
+            c.symbol,
+            c.full_name,
+            c.net,
+            c.coin_type,
+            c.logo_url
+        FROM
+            currency_type c
+                INNER JOIN available_currencies a ON c.symbol = a.ticker
+                AND c.net = a.network
+        WHERE
+            is_delete = 0
+          AND is_exchange = 1
+          AND c.net not in("OP")<!--跨链桥对OP这条链的支持不稳定，所以给屏蔽掉-->
+    </select>
+
+
+    <!-- 按公链和币种获取币种信息-->
+    <select id="getCurrencyInfo" resultMap="currencyTypeMap">
+        SELECT
+           *
+        FROM
+        currency_type
+        WHERE
+        1=1
+        AND is_delete = 0
+        <if test="symbol != null and symbol != ''">
+            AND symbol = #{symbol}
+        </if>
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+    </select>
+
+    <!-- 按公链和 币种类型获取主链信息 -->
+    <select id="getMainCurrencyInfo" resultMap="currencyTypeMap">
+        SELECT
+           *
+        FROM
+          currency_type
+        WHERE
+        1=1
+        AND is_delete = 0
+        AND coin_type = 1
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+    </select>
+
+    <!-- 获取系统所有支持的链 -->
+    <select id="getChainList" resultType="java.lang.String">
+        SELECT
+            net
+        FROM
+            currency_type
+        GROUP BY net
+    </select>
+
+    <!--按合约地址获取对应的币种信息-->
+    <select id="getCurrencyContract" resultMap="currencyTypeMap">
+        SELECT
+           *
+        FROM
+           currency_type
+        WHERE
+         1=1
+        <if test="contractAddress != null and contractAddress != ''">
+            AND contract_address = #{contractAddress}
+        </if>
+    </select>
+
+</mapper>

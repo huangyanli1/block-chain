@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.StatisticAddressMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.StatisticAddressEntity" id="statisticAddressMap">
+        <result property="id" column="id"/>
+        <result property="net" column="net"/>
+        <result property="address" column="address"/>
+        <result property="currencyNumber" column="currency_number"/>
+        <result property="symbol" column="symbol"/>
+        <result property="coinType" column="coin_type"/>
+        <result property="entriesNumber" column="entries_number"/>
+        <result property="entriesCurrencyNumber" column="entries_currency_number"/>
+        <result property="withdrawalNumber" column="withdrawal_number"/>
+        <result property="withdrawalCurrencyNumber" column="withdrawal_currency_number"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <delete id="remove" parameterType="java.lang.Integer" >
+        DELETE FROM statistic_address
+    </delete>
+
+    <select id="getStatisticAddressList" resultMap="statisticAddressMap">
+        SELECT
+        *
+        FROM
+        statistic_address
+        WHERE
+        1=1
+        <if test="address != null and address != ''">
+            AND address = #{address}
+        </if>
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+    </select>
+
+
+</mapper>

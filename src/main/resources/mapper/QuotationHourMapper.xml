@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.QuotationHourMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.QuotationHourEntity" id="quotationHourMap">
+        <result property="id" column="id"/>
+        <result property="quotationTime" column="quotation_time"/>
+        <result property="openingPrice" column="opening_price"/>
+        <result property="closingPrice" column="closing_price"/>
+        <result property="minimumPrice" column="minimum_price"/>
+        <result property="highestPrice" column="highest_price"/>
+        <result property="transactionVolume" column="transaction_volume"/>
+        <result property="symbol" column="symbol"/>
+    </resultMap>
+
+
+    <!--定时任务刷数据入行情表-->
+    <insert id="insertQuotationHour" useGeneratedKeys="true" keyProperty="data.id" keyColumn="id">
+        insert into quotation_hour(
+            quotation_time,
+            opening_price,
+            closing_price,
+            minimum_price,
+            highest_price,
+            transaction_volume,
+            symbol
+        )values(
+                   #{data.quotationTime},
+                   #{data.openingPrice},
+                   #{data.closingPrice},
+                   #{data.minimumPrice},
+                   #{data.highestPrice},
+                   #{data.transactionVolume},
+                   #{data.symbol}
+               )
+    </insert>
+
+
+
+    <!--后台管理系统-加密货币交易管理 - 发送币列表数量 -->
+    <select id="getHourPrice"  resultMap="quotationHourMap">
+        SELECT
+              *
+        from
+             quotation_hour
+        WHERE
+        1=1
+        <if test="startTime != null and startTime != ''">
+            AND quotation_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND quotation_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+        <if test="symbol != null and symbol != ''">
+            AND symbol = #{symbol}
+        </if>
+    </select>
+
+
+    <select id="getNearestData"  resultType="com.block.chain.vo.QuotationResultVO">
+        <foreach item="paramer" collection="paramerList" separator="UNION ALL">
+            (SELECT
+             #{paramer.quotationTime} AS queryTime,
+             quotation_time,
+             opening_price,
+             closing_price,
+             minimum_price,
+             highest_price,
+             transaction_volume,
+             symbol
+            FROM quotation_hour
+            WHERE symbol = #{paramer.symbol}
+            ORDER BY ABS(DATEDIFF(quotation_time, #{paramer.quotationTime}))
+            LIMIT 1)
+        </foreach>
+    </select>
+
+</mapper>

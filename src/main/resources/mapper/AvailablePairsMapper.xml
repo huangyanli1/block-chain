@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.AvailablePairsMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.AvailablePairsEntity" id="availablePairsMap">
+        <result property="id" column="id"/>
+        <result property="fromCurrency" column="from_currency"/>
+        <result property="fromNetwork" column="from_network"/>
+        <result property="toCurrency" column="to_currency"/>
+        <result property="toNetwork" column="to_network"/>
+        <result property="flow" column="flow"/>
+    </resultMap>
+
+
+    <delete id="remove" parameterType="java.lang.Integer" >
+        DELETE FROM available_pairs
+    </delete>
+
+
+    <!--定时任务刷数据入行情表-->
+    <insert id="insertAvailablePairs" useGeneratedKeys="true" keyProperty="data.id" keyColumn="id">
+        insert into available_pairs(
+            from_currency,
+            from_network,
+            to_currency,
+            to_network,
+            flow
+        )values(
+            #{data.fromCurrency},
+            #{data.fromNetwork},
+            #{data.toCurrency},
+            #{data.toNetwork},
+            #{data.flow}
+            )
+    </insert>
+
+
+    <!--根据筛选条件获取对应exchange now可用币对 -->
+    <select id="getAvailablePairsList"   resultMap="availablePairsMap">
+        SELECT
+        *
+        FROM
+        available_pairs
+        WHERE
+        1=1
+        <if test="net != null and net != ''">
+            AND from_network = #{net}
+        </if>
+        <if test="symbol != null and symbol != ''">
+            AND from_currency = #{symbol}
+        </if>
+    </select>
+
+
+    <!--根据筛选条件获取对应exchange now可用币对 反向操作-->
+    <select id="getAvailablePairsOppositeDirectionList"   resultMap="availablePairsMap">
+        SELECT
+        *
+        FROM
+        available_pairs
+        WHERE
+        1=1
+        <if test="net != null and net != ''">
+            AND from_network = #{net}
+        </if>
+        <if test="symbol != null and symbol != ''">
+            AND from_currency = #{symbol}
+        </if>
+    </select>
+
+
+
+</mapper>

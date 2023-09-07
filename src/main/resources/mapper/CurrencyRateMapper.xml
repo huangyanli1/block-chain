@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.CurrencyRateMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.CurrencyRateEntity" id="currencyRateMap">
+        <result property="id" column="id"/>
+        <result property="sourceCurrency" column="source_currency"/>
+        <result property="quoteCurrency" column="quote_currency"/>
+        <result property="rate" column="rate"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <!--获取所有的汇率信息-->
+    <select id="getFiatList" resultType="com.block.chain.vo.CurrencyRateVO">
+        select
+        *
+        from currency_rate
+    </select>
+
+
+    <!--根据源货币和报价货币查询对应汇率信息-->
+    <select id="getCurrencyRate" resultMap="currencyRateMap">
+        select
+           *
+        from currency_rate
+          where
+        1=1
+        <if test="sourceCurrency != null and sourceCurrency != ''">
+            AND source_currency = #{sourceCurrency}
+        </if>
+        <if test="quoteCurrency != null and quoteCurrency != ''">
+            AND quote_currency = #{quoteCurrency}
+        </if>
+    </select>
+
+    <!--根据通过法币获取对应美元的汇率-->
+    <select id="exchangeRate" resultType="com.block.chain.vo.ExchangeRateVO">
+        SELECT
+          r.source_currency AS source,
+          r.quote_currency AS target,
+          r.rate,
+          r.update_time AS timestmp,
+          s.unit AS symbol
+        FROM
+           currency_rate r
+        LEFT JOIN sys_rate s ON r.quote_currency = s.symbol
+          WHERE
+        1 = 1
+        <if test="sourceCurrency != null and sourceCurrency != ''">
+            AND source_currency = #{sourceCurrency}
+        </if>
+        <if test="quoteCurrency != null and quoteCurrency != ''">
+            AND quote_currency = #{quoteCurrency}
+        </if>
+    </select>
+
+
+    <!--获取所有的汇率信息 - 用于消息推送-->
+    <select id="messageFiatList" resultType="com.block.chain.vo.management.FiatRateVO">
+        SELECT
+            source_currency,
+            quote_currency,
+            rate
+        FROM
+            currency_rate
+    </select>
+
+    <!--根据symbol获取所有对应法币汇率列表-->
+    <select id="getSymbolRateList" resultType="com.block.chain.vo.management.FiatRateVO">
+        SELECT
+          source_currency,
+          quote_currency,
+          rate
+        FROM
+          currency_rate
+        WHERE
+           source_currency  = 'USD'
+        <if test="symbolList != null ">
+            AND quote_currency IN
+            <foreach item = "symbol" collection="symbolList" separator="," open="(" close=")">
+                #{symbol}
+            </foreach>
+        </if>
+    </select>
+
+
+    <!--根据symbol获取对应法币汇率列表-->
+    <select id="getSymbolRate" resultType="com.block.chain.vo.management.FiatRateVO">
+        SELECT
+           source_currency,
+           quote_currency,
+           rate
+        FROM
+           currency_rate
+        WHERE
+         source_currency  = 'USD'
+        <if test="sourceCurrency != null and sourceCurrency != ''">
+            AND quote_currency = #{sourceCurrency}
+        </if>
+    </select>
+
+
+
+</mapper>

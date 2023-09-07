@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.CurrencyPriceMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.CurrencyPriceEntity" id="currencyPriceMap">
+        <result property="id" column="id"/>
+        <result property="currencyName" column="currency_name"/>
+        <result property="currencySymbol" column="currency_symbol"/>
+        <result property="priceUsd" column="price_usd"/>
+        <result property="transactionVolume" column="transaction_volume"/>
+        <result property="timeMs" column="time_ms"/>
+        <result property="transactionCurrency" column="transaction_currency"/>
+        <result property="transactionReport" column="transaction_report"/>
+        <result property="transactionReportUsd" column="transaction_report_usd"/>
+        <result property="marketValue" column="market_value"/>
+        <result property="riseFallDay" column="rise_fall_day"/>
+        <result property="highestPriceDay" column="highest_price_day"/>
+        <result property="minimumPriceDay" column="minimum_price_day"/>
+        <result property="riseFallWeek" column="rise_fall_week"/>
+        <result property="highestPriceWeek" column="highest_price_week"/>
+        <result property="minimumPriceWeek" column="minimum_price_week"/>
+        <result property="riseFallMonth" column="rise_fall_month"/>
+        <result property="highestPriceMonth" column="highest_price_month"/>
+        <result property="minimumPriceMonth" column="minimum_price_month"/>
+        <result property="highestPriceHistory" column="highest_price_history"/>
+        <result property="minimumPriceHistory" column="minimum_price_history"/>
+    </resultMap>
+
+    <!-- 获取所有监控了价格的数字货币列表 -->
+    <select id="getALLCurrencyPrice" resultMap="currencyPriceMap">
+        SELECT
+            *
+        FROM
+            currency_price
+    </select>
+
+    <!-- 获取价格表中是否有该symbol的数据-->
+    <select id="getCurrencyPrice" resultMap="currencyPriceMap">
+        SELECT
+            *
+        FROM
+            currency_price p
+        WHERE
+            p.currency_symbol = #{symbol}
+    </select>
+
+    <!-- 按条件获取历史行情并按时间排序 - 开始或结束时间为空 - 筛选数量固定-->
+    <select id="getCurrencyPriceList" resultMap="currencyPriceMap">
+        select
+        *
+        from currency_price
+        where
+        1=1
+        <if test="currencySymbol != null and currencySymbol != ''">
+            AND currency_symbol = #{currencySymbol}
+        </if>
+    </select>
+
+
+    <!--根据symbol获取对应币种价格列表-->
+    <select id="getSymbolPriceList" resultMap="currencyPriceMap">
+        select
+        *
+        from currency_price
+        where
+        1=1
+        <if test="symbolList != null ">
+            AND currency_symbol IN
+            <foreach item = "symbol" collection="symbolList" separator="," open="(" close=")">
+                #{symbol}
+            </foreach>
+        </if>
+    </select>
+
+
+</mapper>

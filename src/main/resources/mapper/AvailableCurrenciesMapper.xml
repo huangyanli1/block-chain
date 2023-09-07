@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.AvailableCurrenciesMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.AvailableCurrenciesEntity" id="availableCurrenciesMap">
+        <result property="id" column="id"/>
+        <result property="ticker" column="ticker"/>
+        <result property="name" column="name"/>
+        <result property="image" column="image"/>
+        <result property="network" column="network"/>
+        <result property="createDate" column="create_date"/>
+    </resultMap>
+
+    <delete id="remove" parameterType="java.lang.Integer" >
+        DELETE FROM available_currencies
+    </delete>
+
+
+    <!--定时任务刷数据入行情表-->
+    <insert id="insertAvailableCurrencies" useGeneratedKeys="true" keyProperty="data.id" keyColumn="id">
+        insert into available_currencies(
+            ticker,
+            name,
+            image,
+            network,
+            create_date
+        )values(
+                   #{data.ticker},
+                   #{data.name},
+                   #{data.image},
+                   #{data.network},
+                   #{data.createDate}
+               )
+    </insert>
+
+
+</mapper>

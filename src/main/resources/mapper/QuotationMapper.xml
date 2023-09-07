@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.QuotationMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.QuotationEntity" id="quotationMap">
+        <result property="id" column="id"/>
+        <result property="quotationTime" column="quotation_time"/>
+        <result property="openingPrice" column="opening_price"/>
+        <result property="closingPrice" column="closing_price"/>
+        <result property="minimumPrice" column="minimum_price"/>
+        <result property="highestPrice" column="highest_price"/>
+        <result property="transactionVolume" column="transaction_volume"/>
+        <result property="intervalType" column="interval_type"/>
+        <result property="exchange" column="exchange"/>
+    </resultMap>
+    <!-- 按条件获取调整单并按时间排序-->
+    <select id="getQuotationList" parameterType="com.block.chain.vo.IntervalVO" resultMap="quotationMap">
+        select
+        *
+        from ${tableName}
+        where
+        1=1
+        <if test="intervalType != null and intervalType != ''">
+            AND interval_type = #{intervalType}
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND quotation_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND quotation_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+        order by  quotation_time
+    </select>
+
+    <!-- 按条件获取历史行情并按时间排序 - 开始或结束时间为空 - 筛选数量固定-->
+    <select id="getQuotationSizeList" parameterType="com.block.chain.vo.IntervalVO" resultMap="quotationMap">
+        select
+        *
+        from ${tableName}
+        where
+        1=1
+        <if test="intervalType != null and intervalType != ''">
+            AND interval_type = #{intervalType}
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND quotation_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND quotation_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+        order by  quotation_time
+        LIMIT 0, 50
+    </select>
+
+
+    <insert id="automaticCreateTable" parameterType="String">
+        CREATE
+            TABLE
+            ${tableName} (
+                                    `id`  bigint(11) NOT NULL AUTO_INCREMENT COMMENT '主键Id' ,
+                                    `quotation_time`  bigint(20) NULL DEFAULT NULL COMMENT '时间戳' ,
+                                    `opening_price`  decimal(48,24) NULL DEFAULT NULL COMMENT '开盘价' ,
+                                    `closing_price`  decimal(48,24) NULL DEFAULT NULL COMMENT '收盘价' ,
+                                    `minimum_price`  decimal(48,24) NULL DEFAULT NULL COMMENT '最低价' ,
+                                    `highest_price`  decimal(48,24) NULL DEFAULT NULL ,
+                                    `transaction_volume`  decimal(48,24) NULL DEFAULT NULL COMMENT '交易量' ,
+                                    `interval_type`  varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT 'K线类型 (数据点间隔)[1m,5m,15m,30m,1h,6h,1d],默认5m' ,
+                                    `exchange`  varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '交易所(来源)' ,
+                                    PRIMARY KEY (`id`)
+                       )
+                       ENGINE=InnoDB
+                       DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
+                       ROW_FORMAT=DYNAMIC;
+
+    </insert>
+
+    <!-- 判断数据库中是否已存在某一张表-->
+    <select id="isHaveTable" parameterType="String" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM
+            information_schema.TABLES
+        WHERE
+                table_schema = (
+                SELECT DATABASE
+                           ())
+          and table_name = #{tableName}
+        ORDER BY
+            create_time DESC
+    </select>
+
+
+    <!--定时任务刷数据入行情表-->
+    <insert id="insertQuotation" parameterType="com.block.chain.vo.QuotationVO" useGeneratedKeys="true" keyProperty="id">
+        insert into ${tableName}(
+        quotation_time,
+        opening_price,
+        closing_price,
+        minimum_price,
+        highest_price,
+        transaction_volume,
+        interval_type,
+        exchange
+        )values(
+        #{quotationTime},
+        #{openingPrice},
+        #{closingPrice},
+        #{minimumPrice},
+        #{highestPrice},
+        #{transactionVolume},
+        #{intervalType},
+        #{exchange}
+        )
+    </insert>
+
+
+</mapper>

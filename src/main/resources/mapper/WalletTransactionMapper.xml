@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.WalletTransactionMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.WalletTransactionEntity" id="walletTransactionMap">
+        <result property="id" column="id"/>
+        <result property="txHash" column="tx_hash"/>
+        <result property="net" column="net"/>
+        <result property="txCommitTime" column="tx_commit_time"/>
+        <result property="businessId" column="business_id"/>
+        <result property="businessOrderId" column="business_order_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="blockHash" column="block_hash"/>
+        <result property="blockNumber" column="block_number"/>
+        <result property="receivedTime" column="received_time"/>
+        <result property="broadcastingTime" column="broadcasting_time"/>
+        <result property="unconfirmedTime" column="unconfirmed_time"/>
+        <result property="confirmedTime" column="confirmed_time"/>
+        <result property="transactionStatus" column="transaction_status"/>
+        <result property="coinType" column="coin_type"/>
+        <result property="fromAddr" column="from_addr"/>
+        <result property="toAddr" column="to_addr"/>
+        <result property="contractAddr" column="contract_addr"/>
+        <result property="transactionValue" column="transaction_value"/>
+        <result property="decimalNumber" column="decimal_number"/>
+        <result property="feeLimit" column="fee_limit"/>
+        <result property="feeUsed" column="fee_used"/>
+        <result property="txRawData" column="tx_raw_data"/>
+        <result property="businessData1" column="business_data1"/>
+        <result property="businessData2" column="business_data2"/>
+        <result property="symbol" column="symbol"/>
+        <result property="coinPrice" column="coin_price"/>
+        <result property="coinValue" column="coin_value"/>
+    </resultMap>
+
+    <select id="getAllUnconfirmedList" resultMap="walletTransactionMap">
+        select
+        *
+        from wallet_transaction
+        where
+        transaction_status = '3'
+    </select>
+
+    <!--根据条件筛选交易信息-->
+    <select id="getTransactionList" resultMap="walletTransactionMap">
+        SELECT
+            *
+        FROM
+            wallet_transaction t
+        WHERE
+        1=1
+        <if test="addressList != null ">
+           AND( t.from_addr IN
+           <foreach item = "address" collection="addressList" separator="," open="(" close=")">
+              #{address}
+           </foreach>
+           OR t.to_addr IN
+           <foreach item = "address" collection="addressList" separator="," open="(" close=")">
+              #{address}
+           </foreach>
+               )
+        </if>
+    </select>
+
+
+    <!--获取入账交易记录==地址在from或者to，且交易金额为正-->
+    <select id="getEntriesTransactionList" resultMap="walletTransactionMap">
+        SELECT
+        *
+        FROM
+        wallet_transaction t
+        WHERE
+        1=1
+            AND transaction_value >= 0
+        <if test="addressList != null ">
+            AND (t.from_addr IN
+            <foreach item="address" collection="addressList" separator="," open="(" close=")">
+                #{address}
+            </foreach>
+            OR t.to_addr IN
+            <foreach item="address" collection="addressList" separator="," open="(" close=")">
+                #{address}
+            </foreach>
+                )
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND tx_commit_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND tx_commit_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+        <if test="symbol != null and symbol != ''">
+            AND symbol = #{symbol}
+        </if>
+    </select>
+
+    <!--获取提现交易记录==地址在from或者to，且交易金额为负数-->
+    <select id="getWithdrawalTransactionList" resultMap="walletTransactionMap">
+        SELECT
+        *
+        FROM
+        wallet_transaction t
+        WHERE
+        1=1
+            AND transaction_value <![CDATA[ <= ]]> 0
+        <if test="addressList != null ">
+            AND (t.from_addr IN
+            <foreach item="address" collection="addressList" separator="," open="(" close=")">
+                #{address}
+            </foreach>
+            OR t.to_addr IN
+            <foreach item="address" collection="addressList" separator="," open="(" close=")">
+                #{address}
+            </foreach>
+                )
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND tx_commit_time <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND tx_commit_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+        <if test="symbol != null and symbol != ''">
+            AND symbol = #{symbol}
+        </if>
+    </select>
+
+
+
+</mapper>

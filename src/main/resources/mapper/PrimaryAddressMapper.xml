@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.PrimaryAddressMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.PrimaryAddressEntity" id="primaryAddressMap">
+        <result property="id" column="id"/>
+        <result property="address" column="address"/>
+        <result property="net" column="net"/>
+        <result property="balance" column="balance"/>
+        <result property="businessId" column="business_id"/>
+<!--        <result property="isInitialize" column="is_initialize"/>-->
+    </resultMap>
+
+    <!-- 获取所有地址信息-->
+    <select id="getPrimaryaddressList" resultMap="primaryAddressMap">
+        SELECT
+            *
+        FROM
+            primary_address
+    </select>
+
+    <!-- 获取公链下所有地址信息-->
+    <select id="getAllPrimaryAddress" resultMap="primaryAddressMap">
+        SELECT
+            *
+        FROM
+            primary_address
+        WHERE
+        1=1
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+    </select>
+
+
+    <select id="getAddressList" resultMap="primaryAddressMap">
+        SELECT
+        *
+        FROM
+        primary_address
+        WHERE
+        1=1
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+        LIMIT #{page}, #{pageSize}
+    </select>
+
+
+    <select id="getAddressCount"  resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM
+        primary_address
+        WHERE
+        1=1
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+    </select>
+
+    <select id="getAddressListByNet" resultMap="primaryAddressMap">
+        SELECT
+           *
+        FROM
+           primary_address
+        WHERE
+         1=1
+        <if test="net != null and net != ''">
+            AND net = #{net}
+        </if>
+        <if test="address != null and address != ''">
+            AND address = #{address}
+        </if>
+    </select>
+
+
+</mapper>

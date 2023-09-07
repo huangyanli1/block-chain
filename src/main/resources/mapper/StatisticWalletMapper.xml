@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.block.chain.mapper.StatisticWalletMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.block.chain.entity.StatisticWalletEntity" id="statisticWalletMap">
+        <result property="id" column="id"/>
+        <result property="net" column="net"/>
+        <result property="addressNumber" column="address_number"/>
+        <result property="primaryCurrencyNumber" column="primary_currency_number"/>
+        <result property="currentPrice" column="current_price"/>
+        <result property="totalValue" column="total_value"/>
+        <result property="statisticStatus" column="statistic_status"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <delete id="remove" parameterType="java.lang.Integer" >
+        DELETE FROM statistic_wallet
+    </delete>
+
+    <select id="getWalletInfoList" resultMap="statisticWalletMap">
+        select
+            *
+        from statistic_wallet
+    </select>
+
+
+</mapper>
